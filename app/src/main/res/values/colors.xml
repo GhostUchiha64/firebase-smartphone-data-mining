@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bgDark">#0F0F1A</color>
+    <color name="bgCard">#16213E</color>
+    <color name="textPrimary">#E0E0E0</color>
+    <color name="textSecondary">#888888</color>
+    <color name="colorPrimary">#4A9EFF</color>
+    <color name="colorPrimaryVariant">#1A4A8A</color>
+    <color name="colorOnPrimary">#FFFFFF</color>
+    <color name="colorSuccess">#27AE60</color>
+    <color name="colorError">#E74C3C</color>
+    <color name="condNew">#27AE60</color>
+    <color name="condExc">#4A9EFF</color>
+    <color name="condVg">#8E44AD</color>
+    <color name="condGd">#E67E22</color>
+</resources>

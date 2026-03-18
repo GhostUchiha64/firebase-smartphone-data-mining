@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0F0F1A">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- Price -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Price (USD)" android:textColor="#888888" android:textSize="13sp"
+            android:layout_marginBottom="4dp"/>
+        <EditText android:id="@+id/etPrice"
+            android:layout_width="match_parent" android:layout_height="52dp"
+            android:inputType="numberDecimal" android:hint="@string/price_hint"
+            android:textColor="#E0E0E0" android:textColorHint="#555555"
+            android:background="@drawable/input_bg" android:padding="12dp"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Display Size -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Display Size (inches)" android:textColor="#888888" android:textSize="13sp"
+            android:layout_marginBottom="4dp"/>
+        <EditText android:id="@+id/etDisplay"
+            android:layout_width="match_parent" android:layout_height="52dp"
+            android:inputType="numberDecimal" android:hint="@string/display_hint"
+            android:textColor="#E0E0E0" android:textColorHint="#555555"
+            android:background="@drawable/input_bg" android:padding="12dp"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Memory -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Memory (GB)" android:textColor="#888888" android:textSize="13sp"
+            android:layout_marginBottom="4dp"/>
+        <EditText android:id="@+id/etMemory"
+            android:layout_width="match_parent" android:layout_height="52dp"
+            android:inputType="number" android:hint="@string/memory_hint"
+            android:textColor="#E0E0E0" android:textColorHint="#555555"
+            android:background="@drawable/input_bg" android:padding="12dp"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Resolution -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Camera Resolution (MP)" android:textColor="#888888" android:textSize="13sp"
+            android:layout_marginBottom="4dp"/>
+        <EditText android:id="@+id/etResolution"
+            android:layout_width="match_parent" android:layout_height="52dp"
+            android:inputType="number" android:hint="@string/resolution_hint"
+            android:textColor="#E0E0E0" android:textColorHint="#555555"
+            android:background="@drawable/input_bg" android:padding="12dp"
+            android:layout_marginBottom="20dp"/>
+
+        <!-- Condition -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Condition" android:textColor="#888888" android:textSize="13sp"
+            android:layout_marginBottom="8dp"/>
+
+        <RadioGroup android:id="@+id/rgCondition"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:layout_marginBottom="24dp">
+
+            <RadioButton android:id="@+id/rbNew" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:text="New"
+                android:textColor="#E0E0E0" android:buttonTint="#4A9EFF" android:padding="8dp"/>
+            <RadioButton android:id="@+id/rbExcellent" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:text="Excellent"
+                android:textColor="#E0E0E0" android:buttonTint="#4A9EFF" android:padding="8dp"/>
+            <RadioButton android:id="@+id/rbVeryGood" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:text="Very good"
+                android:textColor="#E0E0E0" android:buttonTint="#4A9EFF" android:padding="8dp"/>
+            <RadioButton android:id="@+id/rbGood" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:text="Good"
+                android:textColor="#E0E0E0" android:buttonTint="#4A9EFF" android:padding="8dp"/>
+        </RadioGroup>
+
+        <!-- Status -->
+        <TextView android:id="@+id/tvStatus"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="" android:textSize="14sp" android:gravity="center"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Buttons -->
+        <Button android:id="@+id/btnSave"
+            android:layout_width="match_parent" android:layout_height="52dp"
+            android:text="💾  Save to Firebase" android:textColor="#FFFFFF"
+            android:backgroundTint="#4A9EFF" android:layout_marginBottom="12dp"/>
+
+        <Button android:id="@+id/btnClear"
+            android:layout_width="match_parent" android:layout_height="52dp"
+            android:text="Clear Form" android:textColor="#AAAAAA"
+            android:backgroundTint="#2A2A3E"/>
+
+    </LinearLayout>
+</ScrollView>

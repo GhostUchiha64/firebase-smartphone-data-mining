@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Phone body -->
+    <path
+        android:fillColor="#4A9EFF"
+        android:pathData="M38,20 L70,20 C74,20 76,22 76,26 L76,82 C76,86 74,88 70,88 L38,88 C34,88 32,86 32,82 L32,26 C32,22 34,20 38,20 Z"/>
+    <!-- Screen -->
+    <path
+        android:fillColor="#0F0F1A"
+        android:pathData="M38,30 L70,30 L70,74 L38,74 Z"/>
+    <!-- Home button -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,78 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0"/>
+    <!-- Signal bars on screen -->
+    <path
+        android:fillColor="#4A9EFF"
+        android:pathData="M42,60 L46,60 L46,70 L42,70 Z"/>
+    <path
+        android:fillColor="#4A9EFF"
+        android:pathData="M49,55 L53,55 L53,70 L49,70 Z"/>
+    <path
+        android:fillColor="#4A9EFF"
+        android:pathData="M56,50 L60,50 L60,70 L56,70 Z"/>
+    <path
+        android:fillColor="#27AE60"
+        android:pathData="M63,44 L67,44 L67,70 L63,70 Z"/>
+</vector>

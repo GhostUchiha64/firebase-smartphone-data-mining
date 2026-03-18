@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0F0F1A"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="32dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="📱"
+        android:textSize="64sp"
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Smartphone Data Mining"
+        android:textColor="#FFFFFF"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="CSCI 515 — Firebase + TensorFlow"
+        android:textColor="#888888"
+        android:textSize="14sp"
+        android:layout_marginBottom="48dp"/>
+
+    <Button
+        android:id="@+id/btnAddData"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="➕  Add Smartphone Data"
+        android:textSize="16sp"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#4A9EFF"
+        android:layout_marginBottom="16dp"/>
+
+    <Button
+        android:id="@+id/btnViewData"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="📋  View All Records"
+        android:textSize="16sp"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#27AE60"/>
+
+</LinearLayout>

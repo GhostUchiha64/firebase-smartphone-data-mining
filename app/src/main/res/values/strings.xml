@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Smartphone Data Mining</string>
+    <string name="price_hint">e.g. 499.99</string>
+    <string name="display_hint">e.g. 6.1</string>
+    <string name="memory_hint">e.g. 128</string>
+    <string name="resolution_hint">e.g. 12</string>
+    <string name="no_records">No records found.\nAdd data using the Input screen.</string>
+</resources>

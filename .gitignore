@@ -1,0 +1,41 @@
+# ============================================
+# SECURITY - Never commit these files
+# ============================================
+
+# Firebase credentials (contains API keys)
+google-services.json
+google-services-info.plist
+
+# PHP config with real password and Firebase URL
+config.php
+
+# ============================================
+# Android / Android Studio
+# ============================================
+*.iml
+.gradle/
+local.properties
+.idea/
+.DS_Store
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.ap_
+
+# Android keystore files
+*.jks
+*.keystore
+
+# ============================================
+# General
+# ============================================
+*.log
+*.tmp
+*.bak
+.env
+.env.local
+Thumbs.db
+desktop.ini
