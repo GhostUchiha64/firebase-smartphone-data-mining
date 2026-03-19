@@ -136,7 +136,6 @@ firebase-smartphone-data-mining/
 ## Author
 
 **Siddartha Bandi**
-University of North Dakota — CSCI 515
 GitHub: [@GhostUchiha64](https://github.com/GhostUchiha64)
 
 ---
