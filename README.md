@@ -130,6 +130,7 @@ firebase-smartphone-data-mining/
 - `google-services.json` is excluded via `.gitignore` — never commit this file
 - `config.php` is excluded via `.gitignore` — use `config.example.php` as the template
 - Firebase database rules should be set to authenticated access in production
+- The web dashboard is password-protected — the password is not documented publicly and should be shared privately
 
 ---
 
