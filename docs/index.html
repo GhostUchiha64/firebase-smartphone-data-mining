@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Firebase Data Mining System – CSCI 515</title>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<!-- TensorFlow.js -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.12.0/dist/tf.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<style>
+  /* ── Base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:      #0F0F1A;
+    --card:    #16213E;
+    --border:  #2a2a4a;
+    --primary: #4A9EFF;
+    --green:   #27AE60;
+    --red:     #E74C3C;
+    --orange:  #E67E22;
+    --purple:  #8E44AD;
+    --text:    #E0E0E0;
+    --muted:   #AAA;
+  }
+  body { font-family: "Segoe UI", Arial, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  a { color: var(--primary); text-decoration: none; }
+
+  /* ── Login Screen ── */
+  #loginScreen {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; background: var(--bg);
+  }
+  .login-box {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 40px 36px; width: 340px; text-align: center;
+  }
+  .login-box h1 { color: var(--primary); font-size: 1.4em; margin-bottom: 6px; }
+  .login-box p  { color: var(--muted); font-size: 0.88em; margin-bottom: 24px; }
+  .login-box input {
+    width: 100%; padding: 10px 14px; background: var(--bg);
+    border: 1px solid var(--primary); border-radius: 8px;
+    color: #fff; font-size: 0.95em; margin-bottom: 12px;
+  }
+  .login-box input:focus { outline: none; border-color: #fff; }
+  .login-error { color: var(--red); font-size: 0.85em; margin-bottom: 10px; min-height: 18px; }
+
+  /* ── App Shell ── */
+  #app { display: none; }
+
+  header {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    padding: 18px 32px; border-bottom: 2px solid var(--primary);
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+  }
+  header h1 { color: var(--primary); font-size: 1.4em; }
+  header p  { color: var(--muted); font-size: 0.85em; margin-top: 3px; }
+
+  nav { display: flex; gap: 6px; flex-wrap: wrap; }
+  nav button {
+    background: var(--card); border: 1px solid var(--border);
+    color: #ccc; padding: 6px 13px; border-radius: 6px;
+    font-size: 0.83em; cursor: pointer; transition: border-color .2s, color .2s;
+  }
+  nav button:hover, nav button.active { border-color: var(--primary); color: #fff; }
+
+  .container { max-width: 1160px; margin: 28px auto; padding: 0 20px; }
+
+  /* ── Panels ── */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ── Cards grid ── */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: 16px; }
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 22px;
+    transition: transform .2s, border-color .2s;
+  }
+  .card:hover { transform: translateY(-3px); border-color: var(--primary); }
+  .card h2 { font-size: 1.1em; color: #fff; margin-bottom: 8px; }
+  .card p  { color: var(--muted); font-size: 0.86em; margin-bottom: 14px; line-height: 1.5; }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-block; padding: 9px 18px; border: none;
+    border-radius: 6px; cursor: pointer; font-size: 0.88em;
+    font-weight: 600; transition: opacity .2s;
+  }
+  .btn:hover { opacity: .83; }
+  .btn-blue   { background: var(--primary); color: #fff; }
+  .btn-green  { background: var(--green);   color: #fff; }
+  .btn-red    { background: var(--red);     color: #fff; }
+  .btn-orange { background: var(--orange);  color: #fff; }
+  .btn-purple { background: var(--purple);  color: #fff; }
+  .btn-gray   { background: #555;           color: #fff; }
+
+  /* ── Messages ── */
+  .msg { padding: 11px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 0.9em; }
+  .msg-info { background: #0d1a2e; border: 1px solid var(--primary); color: var(--primary); }
+  .msg-ok   { background: #0d2e1a; border: 1px solid var(--green);   color: var(--green); }
+  .msg-err  { background: #2e0d0d; border: 1px solid var(--red);     color: var(--red); }
+
+  /* ── Stat row ── */
+  .stats-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 22px; }
+  .stat-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px 22px; text-align: center; flex: 1; min-width: 120px;
+  }
+  .stat-card .val { font-size: 1.5em; font-weight: 700; color: var(--primary); }
+  .stat-card .lbl { font-size: 0.78em; color: var(--muted); margin-top: 3px; }
+
+  /* ── Table ── */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.87em; }
+  th { background: #1a2a4a; color: var(--primary); padding: 10px 13px; text-align: left; border-bottom: 2px solid var(--primary); }
+  td { padding: 9px 13px; border-bottom: 1px solid #1a1a3a; color: #ddd; }
+  tr:hover td { background: #1a1a2e; }
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 0.8em; font-weight: 600; }
+  .badge-New       { background: #1a4a2e; color: var(--green); }
+  .badge-Excellent { background: #1a2e4a; color: var(--primary); }
+  .badge-Very.good { background: #2e1a4a; color: var(--purple); }
+  .badge-Good      { background: #2e2e1a; color: #f39c12; }
+
+  /* ── JSON box ── */
+  .json-box {
+    background: #050510; border: 1px solid var(--border);
+    border-radius: 10px; padding: 18px; overflow: auto; max-height: 60vh;
+  }
+  .json-box pre { color: #a8ff78; font-size: 0.82em; white-space: pre-wrap; word-wrap: break-word; line-height: 1.6; }
+
+  /* ── Chart wrap ── */
+  .chart-wrap {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px; margin-top: 18px;
+  }
+
+  /* ── Controls ── */
+  .controls {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px 18px; margin-bottom: 18px;
+    display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;
+  }
+  .ctrl-group label { display: block; color: var(--muted); font-size: 0.85em; font-weight: 600; margin-bottom: 5px; }
+  .ctrl-group input,
+  .ctrl-group select {
+    background: var(--bg); border: 1px solid var(--primary);
+    color: #fff; padding: 8px 11px; border-radius: 6px; font-size: 0.9em;
+  }
+  .ctrl-group input { width: 130px; }
+  .status-line { color: var(--primary); font-size: 0.87em; margin-top: 10px; min-height: 20px; }
+
+  /* ── Result box ── */
+  .result-box {
+    background: #0d2e1a; border: 1px solid var(--green);
+    border-radius: 8px; padding: 13px 16px; margin-top: 14px;
+    color: var(--green); font-weight: 600; display: none;
+  }
+
+  /* ── Legend ── */
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.83em; margin-bottom: 8px; }
+  .leg-dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; margin-right: 5px; vertical-align: middle; }
+
+  /* ── Logout ── */
+  #logoutBtn {
+    background: transparent; border: 1px solid #555;
+    color: #888; padding: 5px 11px; border-radius: 5px;
+    font-size: 0.8em; cursor: pointer;
+  }
+  #logoutBtn:hover { border-color: var(--red); color: var(--red); }
+
+  footer { text-align: center; padding: 20px; color: #444; margin-top: 40px; border-top: 1px solid #1a1a2e; font-size: 0.83em; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════════════ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <h1>Firebase Data Mining</h1>
+    <p>CSCI 515 – Exercise II &nbsp;|&nbsp; Siddartha Bandi</p>
+    <input type="password" id="pwInput" placeholder="Enter system password" onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="login-error" id="loginErr"></div>
+    <button class="btn btn-blue" style="width:100%" onclick="doLogin()">Unlock System</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MAIN APP
+══════════════════════════════════════════ -->
+<div id="app">
+
+  <header>
+    <div>
+      <h1>Firebase Data Mining System</h1>
+      <p>CSCI 515 – Exercise II &nbsp;|&nbsp; Siddartha Bandi</p>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+      <nav id="mainNav">
+        <button class="active" onclick="showPanel('home',this)">Home</button>
+        <button onclick="showPanel('json',this)">JSON Data</button>
+        <button onclick="showPanel('predict',this)">All Predictions</button>
+        <button onclick="showPanel('single',this)">Single Prediction</button>
+        <button onclick="showPanel('loss',this)">Loss Chart</button>
+      </nav>
+      <button id="logoutBtn" onclick="doLogout()">Logout</button>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- ── HOME ── -->
+    <div id="panel-home" class="panel active">
+      <div class="msg msg-ok" id="homeUnlocked">System unlocked — all features enabled.</div>
+
+      <!-- Live stats row -->
+      <div class="stats-row" id="statsRow">
+        <div class="stat-card"><div class="val" id="st-total">—</div><div class="lbl">Total Records</div></div>
+        <div class="stat-card"><div class="val" id="st-avg-price">—</div><div class="lbl">Avg Price ($)</div></div>
+        <div class="stat-card"><div class="val" id="st-avg-disp">—</div><div class="lbl">Avg Display (in)</div></div>
+        <div class="stat-card"><div class="val" id="st-top-cond">—</div><div class="lbl">Top Condition</div></div>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <h2>Clear System</h2>
+          <p>Remove all smartphone records from the Firebase database.</p>
+          <button class="btn btn-red" onclick="clearSystem()">Clear System</button>
+        </div>
+        <div class="card">
+          <h2>Check Database (JSON)</h2>
+          <p>View all smartphone data stored in Firebase in JSON and table format.</p>
+          <button class="btn btn-blue" onclick="showPanel('json',document.querySelectorAll('nav button')[1])">View JSON Data</button>
+        </div>
+        <div class="card">
+          <h2>Show All Predictions</h2>
+          <p>TensorFlow.js regression chart — actual data + prediction line.</p>
+          <button class="btn btn-green" onclick="showPanel('predict',document.querySelectorAll('nav button')[2])">Open Chart</button>
+        </div>
+        <div class="card">
+          <h2>Show a Prediction</h2>
+          <p>Enter a price and see where the model predicts the feature value.</p>
+          <button class="btn btn-orange" onclick="showPanel('single',document.querySelectorAll('nav button')[3])">Predict by Price</button>
+        </div>
+        <div class="card">
+          <h2>Show Loss</h2>
+          <p>Train the model and view the MSE loss curve over epochs.</p>
+          <button class="btn btn-purple" onclick="showPanel('loss',document.querySelectorAll('nav button')[4])">View Loss Chart</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── JSON DATA ── -->
+    <div id="panel-json" class="panel">
+      <div class="msg msg-info" id="jsonInfo">Loading data from Firebase…</div>
+      <div id="tableSection"></div>
+      <div class="chart-wrap" style="margin-top:20px" id="jsonRaw" style="display:none">
+        <h3 style="color:#fff;margin-bottom:10px">Raw JSON</h3>
+        <div class="json-box"><pre id="jsonPre">Loading…</pre></div>
+      </div>
+    </div>
+
+    <!-- ── ALL PREDICTIONS ── -->
+    <div id="panel-predict" class="panel">
+      <div class="msg msg-info">
+        TensorFlow.js linear regression — trains on your Firebase data and plots actual points alongside the prediction line.
+      </div>
+      <div class="controls">
+        <div class="ctrl-group">
+          <label>Y-Axis Feature</label>
+          <select id="pred-feature">
+            <option value="displaySize">Display Size (inches)</option>
+            <option value="memory">Memory (GB)</option>
+            <option value="resolution">Resolution (px)</option>
+          </select>
+        </div>
+        <div class="ctrl-group">
+          <label>Training Epochs</label>
+          <input type="number" id="pred-epochs" value="200" min="10" max="2000">
+        </div>
+        <div class="ctrl-group">
+          <label>&nbsp;</label>
+          <button class="btn btn-green" onclick="runAllPredictions()">Train & Plot</button>
+        </div>
+      </div>
+      <div class="status-line" id="pred-status">Click "Train & Plot" to start.</div>
+      <div class="chart-wrap">
+        <div class="legend">
+          <span><span class="leg-dot" style="background:#4a9eff"></span>Actual Data</span>
+          <span><span class="leg-dot" style="background:#e74c3c;border-radius:0"></span>Regression Line</span>
+        </div>
+        <canvas id="predChart" height="100"></canvas>
+      </div>
+    </div>
+
+    <!-- ── SINGLE PREDICTION ── -->
+    <div id="panel-single" class="panel">
+      <div class="msg msg-info">
+        Train the model first, then enter any price to see the predicted feature value plotted on the chart.
+      </div>
+      <div class="controls">
+        <div class="ctrl-group">
+          <label>Y-Axis Feature</label>
+          <select id="sing-feature">
+            <option value="displaySize">Display Size (inches)</option>
+            <option value="memory">Memory (GB)</option>
+            <option value="resolution">Resolution (px)</option>
+          </select>
+        </div>
+        <div class="ctrl-group">
+          <label>Training Epochs</label>
+          <input type="number" id="sing-epochs" value="200" min="10" max="2000">
+        </div>
+        <div class="ctrl-group">
+          <label>&nbsp;</label>
+          <button class="btn btn-green" onclick="trainSingle()">Train Model</button>
+        </div>
+      </div>
+      <div id="priceSection" style="display:none" class="controls">
+        <div class="ctrl-group">
+          <label>Enter Price ($)</label>
+          <input type="number" id="priceInput" placeholder="e.g. 799" min="0">
+        </div>
+        <div class="ctrl-group">
+          <label>&nbsp;</label>
+          <button class="btn btn-orange" onclick="predictSingle()">Predict</button>
+        </div>
+      </div>
+      <div class="result-box" id="singleResult"></div>
+      <div class="status-line" id="sing-status">Click "Train Model" to begin.</div>
+      <div class="chart-wrap">
+        <div class="legend">
+          <span><span class="leg-dot" style="background:#4a9eff"></span>Actual Data</span>
+          <span><span class="leg-dot" style="background:#e74c3c;border-radius:0"></span>Regression Line</span>
+          <span><span class="leg-dot" style="background:#f1c40f"></span>Your Prediction</span>
+        </div>
+        <canvas id="singChart" height="100"></canvas>
+      </div>
+    </div>
+
+    <!-- ── LOSS CHART ── -->
+    <div id="panel-loss" class="panel">
+      <div class="msg msg-info">
+        Select a feature and number of epochs, then click <strong>Train & Show Loss</strong> to see the MSE loss curve decrease over time.
+      </div>
+      <div class="controls">
+        <div class="ctrl-group">
+          <label>Feature (Y-Axis)</label>
+          <select id="loss-feature">
+            <option value="displaySize">Display Size (inches)</option>
+            <option value="memory">Memory (GB)</option>
+            <option value="resolution">Resolution (px)</option>
+          </select>
+        </div>
+        <div class="ctrl-group">
+          <label>Epochs</label>
+          <input type="number" id="loss-epochs" value="100" min="5" max="1000">
+        </div>
+        <div class="ctrl-group">
+          <label>&nbsp;</label>
+          <button class="btn btn-purple" onclick="runLoss()">Train & Show Loss</button>
+        </div>
+      </div>
+      <div class="status-line" id="loss-status">Click "Train & Show Loss" to begin.</div>
+      <div class="stats-row" id="lossStats" style="display:none">
+        <div class="stat-card"><div class="val" id="ls-epochs">—</div><div class="lbl">Epochs</div></div>
+        <div class="stat-card"><div class="val" id="ls-init">—</div><div class="lbl">Initial Loss</div></div>
+        <div class="stat-card"><div class="val" id="ls-final">—</div><div class="lbl">Final Loss</div></div>
+        <div class="stat-card"><div class="val" id="ls-improve">—</div><div class="lbl">Improvement</div></div>
+      </div>
+      <div class="chart-wrap"><canvas id="lossChart" height="90"></canvas></div>
+    </div>
+
+  </div><!-- /container -->
+
+  <footer>CSCI 515 Exercise II &nbsp;|&nbsp; Firebase + TensorFlow Data Mining &nbsp;|&nbsp; Siddartha Bandi</footer>
+</div><!-- /app -->
+
+<script>
+// ══════════════════════════════════════════
+// FIREBASE CONFIG
+// ══════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyColIDn-PwKrRbqMn7bkZGrpr-GrU3jgZU",
+  authDomain: "data515-ex2-siddarthabandi.firebaseapp.com",
+  databaseURL: "https://data515-ex2-siddarthabandi-default-rtdb.firebaseio.com",
+  projectId: "data515-ex2-siddarthabandi",
+  storageBucket: "data515-ex2-siddarthabandi.firebasestorage.app",
+  messagingSenderId: "143949654087",
+  appId: "1:143949654087:web:44696e24c0ef273e03a962"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const SITE_PASSWORD = 'und515';
+
+// ══════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════
+function doLogin() {
+  const pw = document.getElementById('pwInput').value;
+  if (pw === SITE_PASSWORD) {
+    sessionStorage.setItem('auth', '1');
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadHomeStats();
+  } else {
+    document.getElementById('loginErr').textContent = 'Incorrect password. Try again.';
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem('auth');
+  location.reload();
+}
+
+// Auto-restore session
+window.addEventListener('DOMContentLoaded', () => {
+  if (sessionStorage.getItem('auth') === '1') {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadHomeStats();
+  }
+});
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+function showPanel(name, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (name === 'json') loadJSON();
+}
+
+// ══════════════════════════════════════════
+// FIREBASE DATA HELPERS
+// ══════════════════════════════════════════
+async function loadAllData() {
+  const snap = await db.ref('/smartphones').once('value');
+  const raw = snap.val();
+  if (!raw) return [];
+  return Object.entries(raw).map(([key, r]) => ({
+    key,
+    price:       parseFloat(r.price)       || 0,
+    displaySize: parseFloat(r.displaySize) || 0,
+    memory:      parseFloat(r.memory)      || 0,
+    resolution:  parseFloat(r.resolution)  || 0,
+    condition:   r.condition || '—'
+  })).filter(r => r.price > 0);
+}
+
+// ══════════════════════════════════════════
+// HOME STATS
+// ══════════════════════════════════════════
+async function loadHomeStats() {
+  try {
+    const data = await loadAllData();
+    if (!data.length) {
+      document.getElementById('st-total').textContent = '0';
+      ['st-avg-price','st-avg-disp','st-top-cond'].forEach(id => document.getElementById(id).textContent = '—');
+      return;
+    }
+    document.getElementById('st-total').textContent = data.length;
+    document.getElementById('st-avg-price').textContent =
+      '$' + (data.reduce((s,r) => s + r.price, 0) / data.length).toFixed(0);
+    document.getElementById('st-avg-disp').textContent =
+      (data.reduce((s,r) => s + r.displaySize, 0) / data.length).toFixed(1);
+    // Top condition
+    const freq = {};
+    data.forEach(r => freq[r.condition] = (freq[r.condition] || 0) + 1);
+    const top = Object.entries(freq).sort((a,b) => b[1]-a[1])[0][0];
+    document.getElementById('st-top-cond').textContent = top;
+  } catch(e) { console.error(e); }
+}
+
+// ══════════════════════════════════════════
+// CLEAR SYSTEM
+// ══════════════════════════════════════════
+async function clearSystem() {
+  if (!confirm('Delete ALL smartphone records from Firebase? This cannot be undone.')) return;
+  await db.ref('/smartphones').remove();
+  alert('System cleared! All data has been removed.');
+  loadHomeStats();
+}
+
+// ══════════════════════════════════════════
+// JSON DATA
+// ══════════════════════════════════════════
+async function loadJSON() {
+  const infoEl = document.getElementById('jsonInfo');
+  infoEl.textContent = 'Loading from Firebase…';
+  infoEl.className = 'msg msg-info';
+  try {
+    const data = await loadAllData();
+    if (!data.length) {
+      infoEl.textContent = 'No data found. Add records via the Android app.';
+      infoEl.className = 'msg msg-err';
+      document.getElementById('tableSection').innerHTML = '';
+      document.getElementById('jsonPre').textContent = '{}';
+      return;
+    }
+    infoEl.textContent = `Firebase path: /smartphones  —  ${data.length} record${data.length !== 1 ? 's' : ''}`;
+    infoEl.className = 'msg msg-info';
+
+    // Table
+    const condBadge = c => {
+      const cls = {'New':'badge-New','Excellent':'badge-Excellent','Very good':'badge-Very.good','Good':'badge-Good'}[c] || 'badge-Good';
+      return `<span class="badge ${cls}">${c}</span>`;
+    };
+    let rows = data.map((r, i) => `
+      <tr>
+        <td>${i+1}</td>
+        <td style="color:#555;font-size:0.8em">${r.key}</td>
+        <td>$${r.price.toFixed(2)}</td>
+        <td>${r.displaySize}</td>
+        <td>${r.memory}</td>
+        <td>${r.resolution}</td>
+        <td>${condBadge(r.condition)}</td>
+      </tr>`).join('');
+
+    document.getElementById('tableSection').innerHTML = `
+      <div class="chart-wrap">
+        <h3 style="color:#fff;margin-bottom:10px">Table View</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>#</th><th>Key</th><th>Price</th>
+              <th>Display (in)</th><th>Memory (GB)</th>
+              <th>Resolution (px)</th><th>Condition</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>`;
+
+    // Raw JSON (rebuild object from data)
+    const obj = {};
+    data.forEach(r => { obj[r.key] = { price: r.price, displaySize: r.displaySize, memory: r.memory, resolution: r.resolution, condition: r.condition }; });
+    document.getElementById('jsonPre').textContent = JSON.stringify(obj, null, 2);
+    document.getElementById('jsonRaw').style.display = 'block';
+  } catch(e) {
+    infoEl.textContent = 'Firebase error: ' + e.message;
+    infoEl.className = 'msg msg-err';
+  }
+}
+
+// ══════════════════════════════════════════
+// TF.js HELPERS
+// ══════════════════════════════════════════
+function normalise(arr) {
+  const mn = Math.min(...arr), mx = Math.max(...arr);
+  return { norm: arr.map(v => mx === mn ? 0 : (v - mn) / (mx - mn)), mn, mx };
+}
+function denorm(v, mn, mx) { return v * (mx - mn) + mn; }
+
+async function trainModel(prices, features, epochs) {
+  const xN = normalise(prices), yN = normalise(features);
+  const model = tf.sequential();
+  model.add(tf.layers.dense({ inputShape:[1], units:1 }));
+  model.compile({ optimizer: tf.train.adam(0.01), loss: 'meanSquaredError' });
+  const xT = tf.tensor2d(xN.norm, [xN.norm.length, 1]);
+  const yT = tf.tensor2d(yN.norm, [yN.norm.length, 1]);
+  await model.fit(xT, yT, { epochs, verbose:0 });
+  xT.dispose(); yT.dispose();
+  return { model, xN, yN };
+}
+
+function buildLine(model, xN, yN, prices) {
+  const mn = Math.min(...prices), mx = Math.max(...prices);
+  const pts = [];
+  for (let i = 0; i < 50; i++) {
+    const p = mn + i * (mx - mn) / 49;
+    const pN = xN.mx === xN.mn ? 0 : (p - xN.mn) / (xN.mx - xN.mn);
+    const predN = model.predict(tf.tensor2d([pN],[1,1])).dataSync()[0];
+    pts.push({ x: p, y: denorm(predN, yN.mn, yN.mx) });
+  }
+  return pts;
+}
+
+const FLABELS = { displaySize:'Display Size (in)', memory:'Memory (GB)', resolution:'Resolution (px)' };
+
+function makeScatterChart(canvasId, prices, features, linePoints, yLabel, extraPoints, existingChart) {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  if (existingChart) existingChart.destroy();
+  const datasets = [
+    { label:'Actual Data', data: prices.map((p,i) => ({x:p,y:features[i]})),
+      type:'scatter', backgroundColor:'#4a9eff', pointRadius:6, order:2 },
+    { label:'Regression Line', data: linePoints, type:'line',
+      borderColor:'#e74c3c', backgroundColor:'transparent',
+      borderWidth:2, pointRadius:0, tension:0, order:1 }
+  ];
+  if (extraPoints) datasets.push({
+    label:'Your Prediction', data: extraPoints, type:'scatter',
+    backgroundColor:'#f1c40f', pointRadius:12, pointStyle:'star', order:0
+  });
+  return new Chart(ctx, {
+    type:'scatter', data:{ datasets },
+    options:{
+      responsive:true,
+      plugins:{ legend:{ labels:{ color:'#ccc' } } },
+      scales:{
+        x:{ title:{ display:true, text:'Price ($)', color:'#aaa' }, ticks:{ color:'#aaa' }, grid:{ color:'#1a1a3a' } },
+        y:{ title:{ display:true, text:yLabel,     color:'#aaa' }, ticks:{ color:'#aaa' }, grid:{ color:'#1a1a3a' } }
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════
+// ALL PREDICTIONS
+// ══════════════════════════════════════════
+let predChart = null;
+async function runAllPredictions() {
+  const st = document.getElementById('pred-status');
+  const feature = document.getElementById('pred-feature').value;
+  const epochs = parseInt(document.getElementById('pred-epochs').value) || 200;
+  st.textContent = '⏳ Loading data from Firebase…';
+  try {
+    const data = await loadAllData();
+    if (data.length < 2) { st.textContent = 'Need at least 2 records — add data via the Android app.'; return; }
+    const prices = data.map(r => r.price);
+    const features = data.map(r => r[feature]);
+    st.textContent = `⏳ Training TensorFlow model (${epochs} epochs)…`;
+    const { model, xN, yN } = await trainModel(prices, features, epochs);
+    const line = buildLine(model, xN, yN, prices);
+    predChart = makeScatterChart('predChart', prices, features, line, FLABELS[feature], null, predChart);
+    st.textContent = `✓ Done — model trained on ${data.length} records.`;
+    model.dispose();
+  } catch(e) { st.textContent = 'Error: ' + e.message; }
+}
+
+// ══════════════════════════════════════════
+// SINGLE PREDICTION
+// ══════════════════════════════════════════
+let singChart = null, singModel = null, singXN = null, singYN = null, singPrices = null, singFeatures = null, singLine = null;
+
+async function trainSingle() {
+  const st = document.getElementById('sing-status');
+  const feature = document.getElementById('sing-feature').value;
+  const epochs = parseInt(document.getElementById('sing-epochs').value) || 200;
+  st.textContent = '⏳ Loading data…';
+  try {
+    const data = await loadAllData();
+    if (data.length < 2) { st.textContent = 'Need at least 2 records.'; return; }
+    singPrices   = data.map(r => r.price);
+    singFeatures = data.map(r => r[feature]);
+    st.textContent = `⏳ Training (${epochs} epochs)…`;
+    if (singModel) singModel.dispose();
+    const res = await trainModel(singPrices, singFeatures, epochs);
+    singModel = res.model; singXN = res.xN; singYN = res.yN;
+    singLine = buildLine(singModel, singXN, singYN, singPrices);
+    singChart = makeScatterChart('singChart', singPrices, singFeatures, singLine, FLABELS[feature], null, singChart);
+    st.textContent = `✓ Trained on ${data.length} records. Enter a price and click Predict.`;
+    document.getElementById('priceSection').style.display = 'flex';
+    document.getElementById('singleResult').style.display = 'none';
+  } catch(e) { st.textContent = 'Error: ' + e.message; }
+}
+
+function predictSingle() {
+  if (!singModel) { alert('Train the model first.'); return; }
+  const price = parseFloat(document.getElementById('priceInput').value);
+  if (isNaN(price) || price <= 0) { alert('Enter a valid price.'); return; }
+  const feature = document.getElementById('sing-feature').value;
+  const pN = singXN.mx === singXN.mn ? 0 : (price - singXN.mn) / (singXN.mx - singXN.mn);
+  const predN = singModel.predict(tf.tensor2d([pN],[1,1])).dataSync()[0];
+  const val = denorm(predN, singYN.mn, singYN.mx);
+  singChart = makeScatterChart('singChart', singPrices, singFeatures, singLine, FLABELS[feature], [{x:price,y:val}], singChart);
+  const box = document.getElementById('singleResult');
+  box.style.display = 'block';
+  box.textContent = `✓ Predicted ${FLABELS[feature]} for $${price.toFixed(2)}: ${val.toFixed(3)}`;
+}
+
+// ══════════════════════════════════════════
+// LOSS CHART
+// ══════════════════════════════════════════
+let lossChart = null;
+async function runLoss() {
+  const st = document.getElementById('loss-status');
+  const feature = document.getElementById('loss-feature').value;
+  const epochs  = parseInt(document.getElementById('loss-epochs').value) || 100;
+  if (epochs < 5 || epochs > 1000) { alert('Enter epochs between 5 and 1000.'); return; }
+  st.textContent = '⏳ Loading data…';
+  try {
+    const data = await loadAllData();
+    if (data.length < 2) { st.textContent = 'Need at least 2 records.'; return; }
+    const prices   = data.map(r => r.price);
+    const features = data.map(r => r[feature]);
+    const xN = normalise(prices), yN = normalise(features);
+
+    const model = tf.sequential();
+    model.add(tf.layers.dense({ inputShape:[1], units:1 }));
+    model.compile({ optimizer: tf.train.adam(0.01), loss: 'meanSquaredError' });
+    const xT = tf.tensor2d(xN.norm, [xN.norm.length, 1]);
+    const yT = tf.tensor2d(yN.norm, [yN.norm.length, 1]);
+
+    const history = [];
+    const tick = Math.max(1, Math.floor(epochs / 50));
+    st.textContent = `⏳ Training… 0 / ${epochs}`;
+
+    await model.fit(xT, yT, { epochs, verbose:0, callbacks:{
+      onEpochEnd: (ep, logs) => {
+        history.push(parseFloat(logs.loss.toFixed(6)));
+        if ((ep+1) % tick === 0 || ep === epochs-1)
+          st.textContent = `⏳ Training… ${ep+1} / ${epochs} | Loss: ${logs.loss.toFixed(6)}`;
+      }
+    }});
+    xT.dispose(); yT.dispose(); model.dispose();
+
+    // Chart
+    const ctx = document.getElementById('lossChart').getContext('2d');
+    if (lossChart) lossChart.destroy();
+    lossChart = new Chart(ctx, {
+      type:'line',
+      data:{ labels: history.map((_,i)=>i+1), datasets:[{
+        label:'MSE Loss', data:history,
+        borderColor:'#8e44ad', backgroundColor:'rgba(142,68,173,0.1)',
+        borderWidth:2, pointRadius: history.length > 100 ? 0 : 3, fill:true, tension:0.3
+      }]},
+      options:{
+        responsive:true,
+        plugins:{ legend:{ labels:{ color:'#ccc' } } },
+        scales:{
+          x:{ title:{ display:true, text:'Epoch',    color:'#aaa' }, ticks:{ color:'#aaa', maxTicksLimit:15 }, grid:{ color:'#1a1a3a' } },
+          y:{ title:{ display:true, text:'Loss (MSE)',color:'#aaa' }, ticks:{ color:'#aaa' }, grid:{ color:'#1a1a3a' } }
+        }
+      }
+    });
+
+    // Stats
+    const init = history[0], final = history[history.length-1];
+    document.getElementById('ls-epochs').textContent  = epochs;
+    document.getElementById('ls-init').textContent    = init.toFixed(6);
+    document.getElementById('ls-final').textContent   = final.toFixed(6);
+    document.getElementById('ls-improve').textContent = (((init-final)/init)*100).toFixed(1)+'%';
+    document.getElementById('lossStats').style.display = 'flex';
+    st.textContent = `✓ Done — ${data.length} records, ${epochs} epochs.`;
+  } catch(e) { st.textContent = 'Error: ' + e.message; }
+}
+</script>
+</body>
+</html>
